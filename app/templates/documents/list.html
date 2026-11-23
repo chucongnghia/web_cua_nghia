@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if is_my_docs %}Tài liệu của tôi{% else %}Danh sách tài liệu học tập{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Header & Actions -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <h2 class="h3 mb-1">
+        {% if is_my_docs %}
+          <i class="bi bi-folder-check me-2 text-primary"></i>Tài liệu do tôi tải lên
+        {% else %}
+          <i class="bi bi-collection-play me-2 text-primary"></i>Thư viện tài liệu học tập
+        {% endif %}
+      </h2>
+      <p class="text-muted mb-0">Tìm kiếm, tra cứu và tải tài liệu học tập PDF, DOCX, TXT.</p>
+    </div>
+    {% if current_user %}
+    <a href="{{ url_for('documents.create_document') }}" class="btn btn-primary">
+      <i class="bi bi-cloud-arrow-up me-1"></i>Tải lên tài liệu mới
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Search & Filter Card -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <form method="GET" action="{{ url_for('documents.list_documents') }}" class="row g-3">
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" class="form-control" name="keyword" value="{{ keyword or '' }}" placeholder="Nhập từ khóa tìm kiếm (tiêu đề, môn học, mô tả)...">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <select class="form-select" name="subject">
+            <option value="">-- Tất cả môn học --</option>
+            {% for subj in subjects %}
+              <option value="{{ subj }}" {% if selected_subject == subj %}selected{% endif %}>{{ subj }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-funnel me-1"></i>Lọc</button>
+          {% if keyword or selected_subject %}
+            <a href="{{ url_for('documents.list_documents') }}" class="btn btn-outline-secondary" title="Đặt lại"><i class="bi bi-arrow-counterclockwise"></i></a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Documents Grid -->
+  {% if documents %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+      {% for doc in documents %}
+        <div class="col">
+          <div class="card h-100 doc-card">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge badge-subject">{{ doc.subject }}</span>
+                {% if doc.is_public %}
+                  <span class="badge badge-public"><i class="bi bi-globe me-1"></i>Công khai</span>
+                {% else %}
+                  <span class="badge badge-private"><i class="bi bi-lock me-1"></i>Riêng tư</span>
+                {% endif %}
+              </div>
+
+              <h5 class="card-title mt-1 mb-2">
+                <a href="{{ url_for('documents.view_document', doc_id=doc.id) }}" class="text-decoration-none text-dark fw-bold">
+                  {{ doc.title }}
+                </a>
+              </h5>
+
+              <p class="card-text text-muted small flex-grow-1">
+                {{ doc.description[:120] }}{% if doc.description|length > 120 %}...{% endif %}
+              </p>
+
+              <div class="border-top pt-2 mt-2 text-muted small">
+                <div class="d-flex justify-content-between mb-1">
+                  <span><i class="bi bi-person me-1"></i>{{ doc.owner_username }}</span>
+                  <span><i class="bi bi-calendar3 me-1"></i>{{ doc.created_at[:10] }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-truncate" style="max-width: 140px;" title="{{ doc.original_filename }}">
+                    <i class="bi bi-paperclip me-1"></i>{{ doc.original_filename }}
+                  </span>
+                  <span class="badge bg-light text-secondary border">{{ (doc.file_size / 1024)|round(1) }} KB</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer bg-white border-top-0 d-flex justify-content-between pt-0 pb-3">
+              <a href="{{ url_for('documents.view_document', doc_id=doc.id) }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-eye me-1"></i>Chi tiết
+              </a>
+              <a href="{{ url_for('documents.download_document', doc_id=doc.id) }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-download me-1"></i>Tải về
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5 bg-white border rounded">
+      <i class="bi bi-folder2-open display-4 text-muted"></i>
+      <h5 class="mt-3">Không tìm thấy tài liệu nào phù hợp</h5>
+      <p class="text-muted">Hãy thử thay đổi từ khóa tìm kiếm hoặc môn học đã chọn.</p>
+      {% if current_user %}
+        <a href="{{ url_for('documents.create_document') }}" class="btn btn-primary">
+          <i class="bi bi-cloud-arrow-up me-1"></i>Tải lên tài liệu đầu tiên
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

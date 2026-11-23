@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Quản trị người dùng{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h3 mb-1"><i class="bi bi-people me-2 text-primary"></i>Danh sách người dùng hệ thống</h2>
+      <p class="text-muted mb-0">Quản lý tài khoản, phân quyền và khóa/mở khóa tài khoản người dùng.</p>
+    </div>
+    <span class="badge bg-primary fs-6">{{ users|length }} người dùng</span>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Tên đăng nhập</th>
+            <th>Vai trò</th>
+            <th>Trạng thái</th>
+            <th>Ngày tham gia</th>
+            <th class="text-end">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>#{{ u.id }}</td>
+            <td>
+              <strong>{{ u.username }}</strong>
+              {% if u.id == current_user.id %}
+                <span class="badge bg-secondary ms-1">Bạn</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.is_admin() %}
+                <span class="badge badge-role-admin">Quản trị viên</span>
+              {% else %}
+                <span class="badge badge-role-student">Sinh viên</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Đang hoạt động</span>
+              {% else %}
+                <span class="badge bg-danger"><i class="bi bi-slash-circle me-1"></i>Đã bị khóa</span>
+              {% endif %}
+            </td>
+            <td>{{ u.created_at }}</td>
+            <td class="text-end">
+              {% if u.id != current_user.id %}
+                <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản {{ u.username }}?');">
+                  {% if u.is_active %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                      <i class="bi bi-lock-fill me-1"></i>Khóa tài khoản
+                    </button>
+                  {% else %}
+                    <button type="submit" class="btn btn-outline-success btn-sm">
+                      <i class="bi bi-unlock-fill me-1"></i>Mở khóa
+                    </button>
+                  {% endif %}
+                </form>
+              {% else %}
+                <span class="text-muted small">Không thể tự khóa</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

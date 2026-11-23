@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <!-- Main Document Details -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+            <div>
+              <span class="badge badge-subject me-2">{{ document.subject }}</span>
+              {% if document.is_public %}
+                <span class="badge badge-public"><i class="bi bi-globe me-1"></i>Công khai</span>
+              {% else %}
+                <span class="badge badge-private"><i class="bi bi-lock me-1"></i>Riêng tư</span>
+              {% endif %}
+              <span class="badge bg-secondary ms-1">{{ document.status }}</span>
+            </div>
+            
+            {% if current_user and (current_user.is_admin() or current_user.id == document.owner_id) %}
+            <div class="btn-group btn-group-sm">
+              <a href="{{ url_for('documents.edit_document', doc_id=document.id) }}" class="btn btn-outline-secondary">
+                <i class="bi bi-pencil me-1"></i>Sửa
+              </a>
+              <form method="POST" action="{{ url_for('documents.delete_document', doc_id=document.id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài liệu này không?');" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger">
+                  <i class="bi bi-trash me-1"></i>Xóa
+                </button>
+              </form>
+            </div>
+            {% endif %}
+          </div>
+
+          <h1 class="h3 fw-bold mb-3">{{ document.title }}</h1>
+
+          <div class="text-muted small mb-4 pb-3 border-bottom d-flex flex-wrap gap-3">
+            <span><i class="bi bi-person me-1"></i>Người đăng: <strong>{{ document.owner_username }}</strong></span>
+            <span><i class="bi bi-calendar3 me-1"></i>Ngày tạo: {{ document.created_at }}</span>
+            {% if document.updated_at != document.created_at %}
+              <span><i class="bi bi-clock-history me-1"></i>Cập nhật: {{ document.updated_at }}</span>
+            {% endif %}
+          </div>
+
+          <!-- Document Description / Content -->
+          <div class="document-description mb-4">
+            <h5 class="fw-bold mb-2">Mô tả chi tiết tài liệu:</h5>
+            <div class="p-3 bg-light rounded border text-break" style="white-space: pre-wrap;">{{ document.description or 'Chưa có mô tả chi tiết.' }}</div>
+          </div>
+
+          <!-- Attachment Box -->
+          <div class="file-attach-box d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-file-earmark-arrow-down-fill display-6 text-primary me-3"></i>
+              <div>
+                <strong class="d-block">{{ document.original_filename }}</strong>
+                <span class="text-muted small">Dung lượng: {{ (document.file_size / 1024)|round(1) }} KB</span>
+              </div>
+            </div>
+            <a href="{{ url_for('documents.download_document', doc_id=document.id) }}" class="btn btn-primary">
+              <i class="bi bi-download me-1"></i>Tải xuống tệp
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+          <h5 class="mb-0"><i class="bi bi-chat-left-text me-2 text-primary"></i>Ghi chú & Bình luận ({{ comments|length }})</h5>
+        </div>
+        <div class="card-body p-4">
+          <!-- Add Comment Form -->
+          {% if current_user %}
+            <form method="POST" action="{{ url_for('documents.add_comment', doc_id=document.id) }}" class="mb-4">
+              <div class="mb-3">
+                <label for="content" class="form-label fw-bold small">Thêm ghi chú hoặc bình luận của bạn:</label>
+                <textarea class="form-control" id="content" name="content" rows="3" required placeholder="Nhập nhận xét, câu hỏi hoặc ghi chú học tập..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-send me-1"></i>Gửi bình luận
+              </button>
+            </form>
+          {% else %}
+            <div class="alert alert-light border small mb-4">
+              <i class="bi bi-info-circle me-1"></i>Vui lòng <a href="{{ url_for('auth.login', next=request.path) }}">đăng nhập</a> để thêm bình luận hoặc ghi chú vào tài liệu này.
+            </div>
+          {% endif %}
+
+          <!-- Comment List -->
+          {% if comments %}
+            <div class="comment-list">
+              {% for comment in comments %}
+                <div class="comment-box">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold"><i class="bi bi-person-circle me-1 text-primary"></i>{{ comment.author_username }}</span>
+                    <span class="text-muted small">{{ comment.created_at }}</span>
+                  </div>
+                  <p class="mb-0 text-break" style="white-space: pre-wrap;">{{ comment.content }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted text-center py-3 mb-0">Chưa có bình luận nào cho tài liệu này. Hãy là người đầu tiên để lại ý kiến!</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar / Info -->
+    <div class="col-lg-4 mt-4 mt-lg-0">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="bi bi-info-circle me-1 text-primary"></i>Thông tin tài liệu</h6>
+        </div>
+        <div class="card-body small">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><strong>Mã tài liệu:</strong> #{{ document.id }}</li>
+            <li class="mb-2"><strong>Môn học:</strong> {{ document.subject }}</li>
+            <li class="mb-2"><strong>Chế độ:</strong> {% if document.is_public %}Công khai cho mọi người{% else %}Chỉ người tạo và Admin{% endif %}</li>
+            <li class="mb-2"><strong>Trạng thái:</strong> {{ document.status }}</li>
+            <li class="mb-2"><strong>Tệp lưu trữ:</strong> <code>{{ document.filename }}</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="bi bi-link-45deg me-1 text-primary"></i>Liên kết tải trực tiếp</h6>
+        </div>
+        <div class="card-body small">
+          <p class="text-muted">Tải theo ID hoặc tên tệp được bảo vệ quyền truy cập:</p>
+          <a href="{{ url_for('documents.download_by_filename', filename=document.filename) }}" class="btn btn-outline-secondary btn-sm w-100">
+            <i class="bi bi-download me-1"></i>Tải qua endpoint filename
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

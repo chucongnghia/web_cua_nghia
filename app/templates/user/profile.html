@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Hồ sơ cá nhân - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-7">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+          <h4 class="card-title mb-0"><i class="bi bi-person-badge me-2 text-primary"></i>Hồ sơ tài khoản</h4>
+        </div>
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px; font-size: 1.75rem;">
+              <i class="bi bi-person"></i>
+            </div>
+            <div>
+              <h4 class="mb-0">{{ user.username }}</h4>
+              <div>
+                {% if user.is_admin() %}
+                  <span class="badge badge-role-admin">Quản trị viên (Admin)</span>
+                {% else %}
+                  <span class="badge badge-role-student">Sinh viên (Student)</span>
+                {% endif %}
+                {% if user.is_active %}
+                  <span class="badge bg-success ms-1">Tài khoản hoạt động</span>
+                {% else %}
+                  <span class="badge bg-danger ms-1">Đã bị khóa</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="text-muted small">Mã định danh (User ID):</label>
+              <div class="fw-bold">#{{ user.id }}</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small">Thời điểm tạo tài khoản:</label>
+              <div class="fw-bold">{{ user.created_at }}</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small">Số tài liệu đã tải lên:</label>
+              <div class="fw-bold text-primary">{{ uploaded_count }} tài liệu</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small">Nhật ký hoạt động:</label>
+              <div class="small text-muted">Được ghi nhận tại <code>app.log</code></div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4 pt-3 border-top">
+            <a href="{{ url_for('documents.my_documents') }}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-folder2 me-1"></i>Xem tài liệu của tôi
+            </a>
+            <a href="{{ url_for('documents.create_document') }}" class="btn btn-primary btn-sm">
+              <i class="bi bi-cloud-arrow-up me-1"></i>Tải lên tài liệu mới
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- JSON API Info Box -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title mb-0"><i class="bi bi-code-slash me-2 text-primary"></i>API thông tin người dùng</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small mb-2">Endpoint JSON trả về thông tin phiên làm việc hiện tại:</p>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control form-control-sm bg-light" value="{{ url_for('user.api_me', _external=True) }}" readonly>
+            <a href="{{ url_for('user.api_me') }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Mở API JSON
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

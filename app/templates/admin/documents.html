@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Quản trị tài liệu{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h3 mb-1"><i class="bi bi-files me-2 text-primary"></i>Quản lý toàn bộ tài liệu</h2>
+      <p class="text-muted mb-0">Quản trị viên có quyền kiểm duyệt và xóa bất kỳ tài liệu nào trên hệ thống.</p>
+    </div>
+    <span class="badge bg-primary fs-6">{{ documents|length }} tài liệu</span>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Tiêu đề tài liệu</th>
+            <th>Môn học</th>
+            <th>Người tải</th>
+            <th>Chế độ</th>
+            <th>Trạng thái</th>
+            <th>Ngày tạo</th>
+            <th class="text-end">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for doc in documents %}
+          <tr>
+            <td>#{{ doc.id }}</td>
+            <td>
+              <a href="{{ url_for('documents.view_document', doc_id=doc.id) }}" class="fw-bold text-decoration-none">
+                {{ doc.title }}
+              </a>
+              <div class="text-muted small"><i class="bi bi-paperclip"></i> {{ doc.original_filename }}</div>
+            </td>
+            <td><span class="badge badge-subject">{{ doc.subject }}</span></td>
+            <td>{{ doc.owner_username }}</td>
+            <td>
+              {% if doc.is_public %}
+                <span class="badge badge-public">Công khai</span>
+              {% else %}
+                <span class="badge badge-private">Riêng tư</span>
+              {% endif %}
+            </td>
+            <td><span class="badge bg-secondary">{{ doc.status }}</span></td>
+            <td>{{ doc.created_at[:10] }}</td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                <a href="{{ url_for('documents.download_document', doc_id=doc.id) }}" class="btn btn-outline-secondary" title="Tải xuống">
+                  <i class="bi bi-download"></i>
+                </a>
+                {% if doc.status != 'approved' %}
+                <form method="POST" action="{{ url_for('admin.approve_document', doc_id=doc.id) }}" class="d-inline">
+                  <button type="submit" class="btn btn-outline-success" title="Duyệt tài liệu">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                </form>
+                {% endif %}
+                <form method="POST" action="{{ url_for('admin.delete_document', doc_id=doc.id) }}" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài liệu này khỏi toàn hệ thống?');">
+                  <button type="submit" class="btn btn-outline-danger" title="Xóa tài liệu">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

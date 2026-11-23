@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# SQLite database & local logs
+*.db
+studydocs.db
+*.log
+app.log
+
+# Uploads (keep directory structure)
+uploads/*
+!uploads/.gitkeep
+
+# Pytest & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+tests/test_uploads/
+tests/test_app.log
+
+# Environment & IDE
+.env
+venv/
+.venv/
+.idea/
+.vscode/
